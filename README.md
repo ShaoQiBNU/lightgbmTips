@@ -21,7 +21,7 @@ https://zhuanlan.zhihu.com/p/99069186
 ## 自定义损失函数说明
 > lightgbm支持自定义损失函数，在lightgbm的API中具体如下：
 
-`fobj`: Customized objective function，自定义的损失函数，返回值有两个，grad和hess，grad代表损失函数对 $y\_pred$ 的一阶导数，hess代表损失函数对 $y\_pred$ 的二阶导数。<font color=Red>**另外，hess and grad both need to be 1-dimensional arrays of the same length as the number of examples in our training data set.**</font>
+`fobj`: Customized objective function，自定义的损失函数，返回值有两个，grad和hess，grad代表损失函数对 $\hat y$ 的一阶导数，hess代表损失函数对 $\hat y$ 的二阶导数。<font color=Red>**另外，hess and grad both need to be 1-dimensional arrays of the same length as the number of examples in our training data set.**</font>
 
 `feval`: Customized evaluation function，自定义的eval函数
 
