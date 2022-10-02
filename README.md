@@ -29,7 +29,7 @@ https://zhuanlan.zhihu.com/p/99069186
 
 ### 回归实例自定义损失函数
 
-详细代码参考：lightgbm_regression.ipynb
+**详细代码参考：[lightgbm_regression.ipynb](https://github.com/ShaoQiBNU/lightgbmTips/blob/main/lightgbm_regression.ipynb)**
 
 #### 自定义mse实现
 > lightgbm实现regression时默认采用L2损失函数，metric设置为L2。自定义实现一下mse，对比一下两者的差异，具体如下：
@@ -158,9 +158,17 @@ def custom_asymmetric_valid(y_pred, data):
 
 https://www.datasnips.com/110/lightgbm-custom-loss-function/
 
-https://www.showmeai.tech/article-detail/205
-
 https://towardsdatascience.com/custom-loss-functions-for-gradient-boosting-f79c1b40466d
+
+https://github.com/manifoldai/mf-eng-public/blob/master/notebooks/custom_loss_lightgbm.ipynb
+
+### 分类实例自定义损失函数
+
+
+
+参考：
+
+https://www.showmeai.tech/article-detail/205
 
 ## lightgbm使用教程
 
