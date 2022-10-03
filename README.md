@@ -163,8 +163,56 @@ https://towardsdatascience.com/custom-loss-functions-for-gradient-boosting-f79c1
 https://github.com/manifoldai/mf-eng-public/blob/master/notebooks/custom_loss_lightgbm.ipynb
 
 ### 分类实例自定义损失函数
+> lightgbm实现二分类时默认采用对数损失函数，也就是交叉熵损失函数，自定义实现一下交叉熵，对比一下两者的差异，具体如下：
 
+交叉熵损失函数为：
+$$Loss= -\sum_{i=1}^N y_{i} \cdot log(p_{i}) +（1-y_{i}) \cdot log(1-p_{i}) $$
 
+$$p_{i} = sigmoid(\hat y_{i}) = \frac{1}{1+exp^{-\hat y_{i}}} $$
+
+一阶导数和二阶导数为：
+
+$$\frac{\partial Loss}{\partial \hat y_{i}}= \frac{1}{1+exp^{-\hat y_{i}}}  - y_{i} = p_{i} - y_{i}$$
+
+$$\frac{\partial^2 Loss}{\partial^2 \hat y_{i}}= \frac{1}{1+exp^{-\hat y_{i}}} \cdot \frac{exp^{-\hat y_{i}}}{1+exp^{-\hat y_{i}}} = p_{i} \cdot (1-p_{i})$$
+
+实现lightgbm的`fobj`和`feval`如下：
+```python
+## sigmoid
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+## 自定义损失函数需要提供损失函数的一阶和二阶导数形式
+def loglikelood(preds, train_data):
+    labels = train_data.get_label()
+    preds = sigmoid(preds)
+    grad = preds - labels
+    hess = preds * (1. - preds)
+    return grad, hess
+
+## 自定义评估函数
+def binary_error(preds, train_data):
+    labels = train_data.get_label()
+    preds = sigmoid(preds)
+    return 'error', log_loss(labels, preds), False
+```
+二分类时，`binary_logloss`和`cross_entropy`数值计算上是一样的，这一点从lightgbm默认二分类的结果可以看出，如下：
+```
+[1]	training's auc: 0.980526	training's xentropy: 0.626414	training's binary_logloss: 0.626414	valid_1's auc: 0.974349	valid_1's xentropy: 0.608637	valid_1's binary_logloss: 0.608637
+Training until validation scores don't improve for 10 rounds.
+[2]	training's auc: 0.980526	training's xentropy: 0.590854	training's binary_logloss: 0.590854	valid_1's auc: 0.974349	valid_1's xentropy: 0.573687	valid_1's binary_logloss: 0.573687
+[3]	training's auc: 0.98234	training's xentropy: 0.560036	training's binary_logloss: 0.560036	valid_1's auc: 0.983354	valid_1's xentropy: 0.545363	valid_1's binary_logloss: 0.545363
+[4]	training's auc: 0.989436	training's xentropy: 0.530959	training's binary_logloss: 0.530959	valid_1's auc: 0.985775	valid_1's xentropy: 0.517253	valid_1's binary_logloss: 0.517253
+[5]	training's auc: 0.988822	training's xentropy: 0.504266	training's binary_logloss: 0.504266	valid_1's auc: 0.985623	valid_1's xentropy: 0.490874	valid_1's binary_logloss: 0.490874
+[6]	training's auc: 0.991023	training's xentropy: 0.479707	training's binary_logloss: 0.479707	valid_1's auc: 0.988574	valid_1's xentropy: 0.467473	valid_1's binary_logloss: 0.467473
+[7]	training's auc: 0.992117	training's xentropy: 0.457022	training's binary_logloss: 0.457022	valid_1's auc: 0.99092	valid_1's xentropy: 0.445513	valid_1's binary_logloss: 0.445513
+[8]	training's auc: 0.991757	training's xentropy: 0.436177	training's binary_logloss: 0.436177	valid_1's auc: 0.991828	valid_1's xentropy: 0.424863	valid_1's binary_logloss: 0.424863
+[9]	training's auc: 0.991543	training's xentropy: 0.416976	training's binary_logloss: 0.416976	valid_1's auc: 0.992433	valid_1's xentropy: 0.405809	valid_1's binary_logloss: 0.405809
+[10]	training's auc: 0.991517	training's xentropy: 0.39913	training's binary_logloss: 0.39913	valid_1's auc: 0.993341	valid_1's xentropy: 0.387673	valid_1's binary_logloss: 0.387673
+Did not meet early stopping. Best iteration is:
+[7]	training's auc: 0.992117	training's xentropy: 0.457022	training's binary_logloss: 0.457022	valid_1's auc: 0.99092	valid_1's xentropy: 0.445513	valid_1's binary_logloss: 0.445513
+```
+但是自定义的loss函数下，两者却有差异，而且自定义的eval函数，其数值与`binary_logloss`和`cross_entropy`也有差异，参考了lightgbm的[issue](https://github.com/microsoft/LightGBM/issues/3312)做了修改，但是结果还是有差异，待补充？
 
 参考：
 
