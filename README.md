@@ -262,7 +262,7 @@ def binary_error(preds, train_data):
     return 'error', -np.average(labels * np.log(preds) + np.log(1 -preds)), False
 ```
 
-> 数据集是乳腺癌的二分类数据集，因此样本权重采用随机整数的方式构造，为实现方便，将权重直接作为样本的label。由于树模型中复制样本作为负样本会对模型分类产生影响，因此采用修改loss函数的形式来实现，具体见：
+> 数据集是乳腺癌的二分类数据集，因此样本权重采用随机整数的方式构造，为实现方便，将权重直接作为样本的label。由于树模型中复制样本作为负样本会对模型分类产生影响，因此采用修改loss函数的形式来实现，具体见：https://github.com/ShaoQiBNU/lightgbmTips/blob/main/lightgbm_wce.ipynb
 
 
 参考：
