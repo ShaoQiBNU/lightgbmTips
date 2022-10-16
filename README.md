@@ -172,9 +172,13 @@ $$p_{i} = sigmoid(\hat y_{i}) = \frac{1}{1+exp^{-\hat y_{i}}} $$
 
 一阶导数和二阶导数为：
 
-$$\frac{\partial Loss}{\partial \hat y_{i}}= \frac{1}{1+exp^{-\hat y_{i}}}  - y_{i} = p_{i} - y_{i}$$
+$$\frac{\partial p_{i}}{\partial \hat y_{i}}= (\frac{1}{1+exp^{-\hat y_{i}}})^{'} = \frac{exp^{-\hat y_{i}}}{(1+exp^{-\hat y_{i}})^{2}} = \frac{1 + exp^{-\hat y_{i}} -1}{(1+exp^{-\hat y_{i}})^{2}} = \frac{1}{1+exp^{-\hat y_{i}}} \cdot (1 - \frac{1}{1+exp^{-\hat y_{i}}}) = p_{i} \cdot (1 - p_{i})$$
 
-$$\frac{\partial^2 Loss}{\partial^2 \hat y_{i}}= \frac{1}{1+exp^{-\hat y_{i}}} \cdot \frac{exp^{-\hat y_{i}}}{1+exp^{-\hat y_{i}}} = p_{i} \cdot (1-p_{i})$$
+$$\frac{\partial Loss}{\partial p_{i}}= - (\frac{y_{i}}{p_{i}} + (1 - y_{i}) \cdot \frac{-1}{1 - p_{i}}) = - \frac{y_{i}}{p_{i}} + \frac{1 - y_{i} }{1 - p_{i}} $$
+
+$$\frac{\partial Loss}{\partial \hat y_{i}}= (- \frac{y_{i}}{p_{i}} + \frac{1 - y_{i} }{1 - p_{i}}) \cdot p_{i} \cdot (1 - p_{i}) = p_{i} - y_{i}$$
+
+$$\frac{\partial^2 Loss}{\partial^2 \hat y_{i}}= p_{i} \cdot (1-p_{i})$$
 
 实现lightgbm的`fobj`和`feval`如下：
 ```python
@@ -213,6 +217,53 @@ Did not meet early stopping. Best iteration is:
 [7]	training's auc: 0.992117	training's xentropy: 0.457022	training's binary_logloss: 0.457022	valid_1's auc: 0.99092	valid_1's xentropy: 0.445513	valid_1's binary_logloss: 0.445513
 ```
 但是自定义的loss函数下，两者却有差异，而且自定义的eval函数，其数值与`binary_logloss`和`cross_entropy`也有差异，参考了lightgbm的[issue](https://github.com/microsoft/LightGBM/issues/3312)做了修改，但是结果还是有差异，待补充？
+
+
+### 加权Logloss实例自定义损失函数
+
+> 用lightgbm实现加权logloss，主要应用在短视频领域WCE建模时长或者某手树模型规则Ensemble融合，具体参考：
+https://github.com/ShaoQiBNU/videoRecTips#wce%E5%8A%A0%E6%9D%83%E5%88%86%E7%B1%BBhttps://mp.weixin.qq.com/s/mxlecZpxXEoOe21UY_UCXQ
+
+WCE损失函数为：
+$$Loss= -\sum_{i=1}^N y_{i} \cdot log(p_{i}) + log(1-p_{i}) $$
+
+$$p_{i} = sigmoid(\hat y_{i}) = \frac{1}{1+exp^{-\hat y_{i}}} $$
+
+$$y_{i} 是正样本的权重，业务自定义$$
+
+一阶导数和二阶导数为：
+
+$$\frac{\partial p_{i}}{\partial \hat y_{i}}= (\frac{1}{1+exp^{-\hat y_{i}}})^{'} = \frac{exp^{-\hat y_{i}}}{(1+exp^{-\hat y_{i}})^{2}} = \frac{1 + exp^{-\hat y_{i}} -1}{(1+exp^{-\hat y_{i}})^{2}} = \frac{1}{1+exp^{-\hat y_{i}}} \cdot (1 - \frac{1}{1+exp^{-\hat y_{i}}}) = p_{i} \cdot (1 - p_{i})$$
+
+$$\frac{\partial Loss}{\partial p_{i}}= - (\frac{y_{i}}{p_{i}} + \frac{-1}{1 - p_{i}}) = - \frac{y_{i}}{p_{i}} + \frac{1}{1 - p_{i}} $$
+
+$$\frac{\partial Loss}{\partial \hat y_{i}}= (- \frac{y_{i}}{p_{i}} + \frac{1}{1 - p_{i}}) \cdot p_{i} \cdot (1 - p_{i}) = - y_{i} \cdot (1 - p_{i}) + p_{i}$$
+
+$$\frac{\partial^2 Loss}{\partial^2 \hat y_{i}}= (y_{i} + 1) \cdot p_{i} \cdot (1-p_{i})$$
+
+实现lightgbm的`fobj`和`feval`如下：
+```python
+## sigmoid
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+## 自定义损失函数需要提供损失函数的一阶和二阶导数形式
+def loglikelood(preds, train_data):
+    labels = train_data.get_label()
+    preds = sigmoid(preds)
+    grad = -labels * (1 - preds) + preds
+    hess = (labels + 1) * preds * (1 - preds)
+    return grad, hess
+
+## 自定义评估函数
+def binary_error(preds, train_data):
+    labels = train_data.get_label()
+    preds = sigmoid(preds)
+    return 'error', -np.average(labels * np.log(preds) + np.log(1 -preds)), False
+```
+
+> 数据集是乳腺癌的二分类数据集，因此样本权重采用随机整数的方式构造，为实现方便，将权重直接作为样本的label。由于树模型中复制样本作为负样本会对模型分类产生影响，因此采用修改loss函数的形式来实现，具体见：
+
 
 参考：
 
