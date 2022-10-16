@@ -222,7 +222,8 @@ Did not meet early stopping. Best iteration is:
 ### 加权Logloss实例自定义损失函数
 
 > 用lightgbm实现加权logloss，主要应用在短视频领域WCE建模时长或者某手树模型规则Ensemble融合，具体参考：
-https://github.com/ShaoQiBNU/videoRecTips#wce%E5%8A%A0%E6%9D%83%E5%88%86%E7%B1%BBhttps://mp.weixin.qq.com/s/mxlecZpxXEoOe21UY_UCXQ
+https://github.com/ShaoQiBNU/videoRecTips#wce%E5%8A%A0%E6%9D%83%E5%88%86%E7%B1%BB
+https://mp.weixin.qq.com/s/mxlecZpxXEoOe21UY_UCXQ
 
 WCE损失函数为：
 $$Loss= -\sum_{i=1}^N y_{i} \cdot log(p_{i}) + log(1-p_{i}) $$
