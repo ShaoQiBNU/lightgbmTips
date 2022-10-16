@@ -218,6 +218,9 @@ Did not meet early stopping. Best iteration is:
 ```
 但是自定义的loss函数下，两者却有差异，而且自定义的eval函数，其数值与`binary_logloss`和`cross_entropy`也有差异，参考了lightgbm的[issue](https://github.com/microsoft/LightGBM/issues/3312)做了修改，但是结果还是有差异，待补充？
 
+参考：
+
+https://www.showmeai.tech/article-detail/205
 
 ### 加权Logloss实例自定义损失函数
 
@@ -265,10 +268,6 @@ def binary_error(preds, train_data):
 
 > 数据集是乳腺癌的二分类数据集，因此样本权重采用随机整数的方式构造，为实现方便，将权重直接作为样本的label。由于树模型中复制样本作为负样本会对模型分类产生影响，因此采用修改loss函数的形式来实现，具体见：https://github.com/ShaoQiBNU/lightgbmTips/blob/main/lightgbm_wce.ipynb
 
-
-参考：
-
-https://www.showmeai.tech/article-detail/205
 
 ## lightgbm使用教程
 
